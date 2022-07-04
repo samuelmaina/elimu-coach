@@ -1,0 +1,23 @@
+{
+  "name": "elimu-coach",
+  "version": "1.0.0",
+  "description": "Application that converts number from different bases to other bases and perform arithematic operations for different arithematics",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/samuelmaina/elimu-coach.git"
+  },
+  "keywords": [
+    "Education",
+    "Conversion"
+  ],
+  "author": "Samuel Maina",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/samuelmaina/elimu-coach/issues"
+  },
+  "homepage": "https://github.com/samuelmaina/elimu-coach#readme"
+}
