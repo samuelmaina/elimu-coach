@@ -1,6 +1,9 @@
 import React from "react";
+import { useParams } from "react-router-dom";
 
-function Convert({ base }) {
+function Convert() {
+  const { base } = useParams();
+
   return <div>Convert for the base {base}</div>;
 }
 

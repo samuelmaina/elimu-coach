@@ -1,13 +1,12 @@
 import React from "react";
 
 import { Routes, Route } from "react-router-dom";
-
-import About from "./about/About";
 import Convert from "./converter/Convert";
+import HomePage from "./HomePage";
 
 const guest = [
-  { path: "/", key: "home", element: About },
-  { path: "/convert/:base", key: "home", element: Convert },
+  { path: "/", key: "home", element: HomePage },
+  { path: "/convert/:base", key: "convert", element: Convert },
 ];
 
 function AppRoutes() {
