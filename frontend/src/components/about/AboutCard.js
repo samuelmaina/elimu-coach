@@ -1,5 +1,5 @@
 import React from "react";
-import Convert from "../converter/Convert";
+import Convert from "../convertor/Convertor";
 import "./About.css";
 
 const AboutCard = ({ base, icon, heading, text }) => {
