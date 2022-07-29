@@ -9,9 +9,10 @@ const Hero = () => {
         <source src={Mainvideo} type="video/mp4" />
       </video>
       <div className="hero-text">
-        <h1>Converter</h1>
+        <h1 style={{ color: "white" }}>Converter</h1>
         <h1>
-          <span className="blue">Number</span>Systems
+          <span className="blue">Number</span>
+          <span style={{ color: "white" }}>Systems </span>
         </h1>
         <p>
           Conversion in Number Systems from any base with chronological steps
@@ -23,7 +24,9 @@ const Hero = () => {
         </div>
       </div>
       <div className="bottom-text">
-        <h2>Total Number of Base systems available: 62 </h2>
+        <h2 style={{ color: "white" }}>
+          Total Number of Base systems available: 62
+        </h2>
       </div>
     </div>
   );

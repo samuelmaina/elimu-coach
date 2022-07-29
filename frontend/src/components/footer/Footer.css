@@ -10,14 +10,18 @@
     max-width: 1140px;
     margin: auto;
     display: grid;
-    padding: 1rem;
-    grid-template-columns: repeat(5, 1fr);
+    padding: 2rem;
+    grid-template-columns: repeat(3, 1fr);
+    border: 1px dotted #006dff;
 }
 
 .footer h4 {
     display: inline-block;
     border-bottom: 3px solid #006dff;
     padding-bottom: .2rem;
+    color: #f8f8f8 !important;
+    align-items: center;
+    justify-content: center;
 }
 
 .footer .col p {

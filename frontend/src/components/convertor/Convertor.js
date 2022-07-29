@@ -1,11 +1,22 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useTransition } from "react";
 import parse from "html-react-parser";
-import { useParams } from "react-router-dom";
-
-import { Divider, List, Typography } from "antd";
+import "./Convertor.css";
 
 import { Input, Form, message } from "antd";
 import { requestConversion } from "../../services/requests/conversion";
+
+import { Button, Divider, List, Select } from "antd";
+import {
+  bases,
+  content,
+  explanation,
+  form,
+  main,
+  numberContainer,
+  numberSystem,
+} from "./convertorStyle";
+
+const { Option } = Select;
 
 const { Item } = Form;
 
@@ -75,25 +86,40 @@ const digits = [
 ];
 
 function Convert() {
-  const { base } = useParams();
-
   const [from, setFrom] = useState(null);
   const [number, setNumber] = useState(null);
 
+  const [toBase, setToBase] = useState(null);
+
   const [result, setResult] = useState(0);
+  const [hasFromError, setHasFromError] = useState(true);
+  const [hasToError, setHasToError] = useState(false);
+  const [hasNumberError, setHasNumberError] = useState(true);
+  const [hasNoErrors, setHasNoErrors] = useState(false);
+
+  const [steps, setSteps] = useState([]);
+
+  const options = [];
+
+  for (let i = 2; i <= 62; i++) {
+    options.push(
+      <Option key={i} value={i}>
+        base {i}
+      </Option>
+    );
+  }
+  useEffect(() => {
+    setHasNoErrors(!(hasFromError || hasToError || hasNumberError));
+  }, [setHasNoErrors, hasFromError, hasToError, hasNumberError]);
 
   useEffect(() => {
-    if (from && base)
-      requestConversion({
-        from,
-        to: Number(base),
-        number,
-      })
-        .then((res) => {
-          setResult(res);
-        })
-        .catch((err) => console.log(err));
-  }, [from, base, number]);
+    {
+      message.info(
+        "Enter number and it base. The number will be displayed in new base and steps of conversion will be shown.",
+        12
+      );
+    }
+  }, []);
 
   let base10 = "";
 
@@ -103,179 +129,245 @@ function Convert() {
   let base10Num = 0;
   let ansNum = "";
 
-  if (number) {
+  useEffect(() => {
+    if (hasNoErrors) constructTheSteps(number);
+  }, [hasNoErrors, number, toBase, from]);
+
+  function constructTheSteps(number) {
     const upperLimit = number.length - 1;
     for (let i = 0; i <= upperLimit; i++) {
+      const currentLetter = number[i];
+      const numDigit = digits.findIndex((val, i) => {
+        return val === currentLetter;
+      });
+
+      base10Num += Number(numDigit) * Math.pow(from, upperLimit - i);
       if (i === upperLimit)
-        base10 += `${number[i]} x ${from}<sup>${
+        base10 += `${numDigit} x ${from}<sup>${
           upperLimit - i
         }  </sup>= ${base10Num}`;
-      else base10 += ` ${number[i]} x ${from}<sup>${upperLimit - i}</sup> +  `;
-      base10Num += Number(number[i]) * Math.pow(from, upperLimit - i);
+      else base10 += ` ${numDigit} x ${from}<sup>${upperLimit - i}</sup> +  `;
     }
     reminder = Number(base10Num);
     while (true) {
-      ans += `<br> ${reminder}/${base},   quotient= ${Math.floor(
-        reminder / base
-      )}, reminder= <strong>${reminder % base}</strong> `;
-      ansNum += reminder % base;
-      reminder = Math.floor(reminder / base);
+      const quotient = Math.floor(reminder / toBase);
+      const rem = digits[reminder % toBase];
+      ans += `<br> ${reminder} / ${toBase},   quotient= ${quotient}, remainder= <strong>${rem}</strong> `;
+      ansNum += rem;
+      reminder = Math.floor(reminder / toBase);
       if (reminder === 0) break;
     }
-  }
 
-  const data = [
-    `<div> First Convert to ${number}<sub>${from}</sub> to base 10 <strong>=</strong>  ${base10} </div>`,
-    `<div> Repetitively divide ${base10Num}<sub>10</sub> by ${base} until quotient is 0  : ${ans} </div>`,
-    `<div> Read all the reminders from bottom to top  which to get all converted number= <strong>${ansNum
-      .split("")
-      .reverse()
-      .join("")}</strong> `,
-  ];
+    const stepResult = ansNum.split("").reverse().join("");
+
+    let data = [
+      `<div> First Convert to ${number}<sub>${from}</sub> to base 10 <strong>=</strong>  ${base10} </div>`,
+      `<div> Repetitively divide ${base10Num}<sub>10</sub> by ${toBase} until quotient is 0  : ${ans} </div>`,
+      `<div> Read all the remainders from bottom to top  which to get all converted number= <strong>${stepResult}</strong> `,
+    ];
+    setResult(stepResult);
+    setSteps(data);
+  }
 
   return (
-    <div
-      style={{
-        display: "flex",
-      }}
-    >
-      <div
-        style={{
-          width: "75%",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <Form
-          style={{
-            backgroundColor: "3a86ff",
-            marginTop: "5%",
-            maxHeight: "20%",
-            width: "100%",
-            paddingTop: "2rem",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <Item
-            name="from"
-            label="Base to Convert from"
-            rules={[
-              {
-                required: true,
-                message: "Please Enter the From Base",
-              },
-              {
-                validator: (_, val) => {
-                  if (val < 2 || val > 62)
-                    return Promise.reject("Can only convert from base 2 to 62");
-                  else return Promise.resolve();
-                },
-                message: "Can only convert from base 2 to base 62",
-              },
-            ]}
-            hasFeedback
-          >
-            <Input
-              name="base"
-              onChange={(e) => {
-                const base = Number(e.target.value);
-                if (validateBase(base)) setFrom(base);
-              }}
-              placeholder="Type the base in which  of the number you want to convert"
-            />
-          </Item>
+    <div className="convertor">
+      <h1 style={{ fontSize: "3rem" }}>The Conversion Calculator </h1>
+      <div style={main}>
+        <div style={content}>
+          <Form style={form}>
+            <div style={numberSystem}>
+              <div style={bases}>
+                <Item
+                  name="from"
+                  label="Source Base: "
+                  style={{
+                    fontWeight: "bolder",
+                  }}
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please Enter the From Base",
+                    },
+                    {
+                      validator: (_, val) => {
+                        if (val < 2 || val > 62)
+                          return Promise.reject(
+                            "Can only convert from base 2 to 62"
+                          );
+                        else return Promise.resolve();
+                      },
+                      message: "Can only convert from base 2 to base 62",
+                    },
+                  ]}
+                  hasFeedback
+                >
+                  <Select
+                    style={{
+                      width: "12vw",
+                    }}
+                    onSelect={(i) => {
+                      const base = Number(i);
+                      if (validateBase(base)) {
+                        setHasFromError(false);
+                        setFrom(base);
+                      } else setHasFromError(true);
+                    }}
+                  >
+                    {options}
+                  </Select>
+                </Item>
 
-          <Item
-            name="number"
-            label="Number to convert"
-            rules={[
-              {
-                required: true,
-                message: "Please Enter the number to convert from",
-              },
-              { whitespace: true, message: "Name can not be a white space" },
-              {
-                validator: (_, vals) => {
-                  const valid = validateNumber(vals);
-                  if (valid) return Promise.resolve();
-                  else return Promise.reject("Invalid number");
-                },
-              },
-            ]}
-            hasFeedback
-          >
-            <Input
-              name="number"
-              onChange={(e) => {
-                const number = e.target.value;
-                if (validateNumber(number)) setNumber(number);
-              }}
-              placeholder="Enter the number to convert"
-            />
-          </Item>
+                <Item>
+                  <Item
+                    name="toBase"
+                    style={{
+                      fontWeight: "bold",
+                    }}
+                    rules={[
+                      {
+                        required: true,
+                        message: "Please Enter the To Base",
+                      },
+                      {
+                        validator: (_, val) => {
+                          if (val < 2 || val > 62)
+                            return Promise.reject(
+                              "Can only convert from base 2 to 62"
+                            );
+                          else return Promise.resolve();
+                        },
+                        message: "Can only convert from base 2 to base 62",
+                      },
+                    ]}
+                    hasFeedback
+                    label="Destination Base : "
+                  >
+                    <Select
+                      style={{
+                        width: "12vw",
+                      }}
+                      onSelect={(i) => {
+                        const base = Number(i);
+                        if (validateBase(base)) {
+                          setHasToError(false);
+                          setToBase(base);
+                        } else setHasToError(true);
+                      }}
+                    >
+                      {options}
+                    </Select>
+                  </Item>
+                </Item>
+              </div>
 
-          <Item label="Result">
-            <Input value={result} />
-          </Item>
-        </Form>
+              <Item
+                name="number"
+                type="text"
+                style={numberContainer}
+                label="Number to convert"
+                hasFeedback
+                rules={[
+                  {
+                    required: true,
+                    message: "Please Enter the number to convert from",
+                  },
+                  {
+                    whitespace: true,
+                    message: "Number can not be a white space",
+                  },
+                ]}
+              >
+                <Input
+                  name="number"
+                  onChange={(e) => {
+                    const number = e.target.value;
+                    if (!hasNumberError) {
+                      setNumber(number);
+                    }
+                  }}
+                  onKeyPress={(e) => {
+                    if (!from || !toBase) {
+                      message.error(
+                        "Please Enter the Source and the Destination Bases"
+                      );
+                      return false;
+                    }
+                    if (!validateNumber(e.key)) {
+                      e.preventDefault();
+                      message.error(
+                        `Entering an invalid number for base ${from}. Base ${from} has the numbers from 0 to ${
+                          digits[from - 1]
+                        }`
+                      );
 
-        {from && (
-          <div
-            style={{
-              marginTop: "2%",
-            }}
-          >
-            <Divider orientation="middle">Steps</Divider>
-            <List
+                      setHasNumberError(true);
+                      return false;
+                    }
+                    setHasNumberError(false);
+                  }}
+                  placeholder="Enter the number to convert"
+                />
+              </Item>
+            </div>
+            <Item label="Result">
+              <Input value={result} />
+            </Item>
+          </Form>
+
+          {hasNoErrors && (
+            <div
               style={{
-                width: "50%",
-                marginLeft: "20%",
+                marginTop: "2%",
               }}
-              size="small"
-              header={
-                <strong>
-                  Conversion From base {from} to base {base}
-                </strong>
-              }
-              footer={<div>Footer</div>}
-              bordered
-              dataSource={data}
-              renderItem={(item) => <List.Item>{parse(item)}</List.Item>}
-            />
-          </div>
-        )}
+            >
+              <Divider orientation="middle">Steps</Divider>
+              <List
+                style={explanation}
+                size="small"
+                header={
+                  <strong>
+                    Steps for Conversion of {number}
+                    <sub>{from}</sub> to base {toBase}
+                  </strong>
+                }
+                footer={<div>The End</div>}
+                bordered
+                dataSource={steps}
+                renderItem={(item) => <List.Item>{parse(item)}</List.Item>}
+              />
+            </div>
+          )}
+        </div>
+        <></>
       </div>
-      <>
-        <List
-          style={{
-            width: "25%",
-          }}
-          size="small"
-          header={<strong>Latest Conversions</strong>}
-          bordered
-          dataSource={[
-            "1001010 from base 2 to base 16",
-            "10weretfrom base 36 to base 9",
-            "1AXedrete from base 60 to base 32",
-          ]}
-          renderItem={(item) => <List.Item>{item}</List.Item>}
-        />
-      </>
     </div>
   );
-  function validateNumber(vals = []) {
-    const lastDigit = vals[vals.length - 1];
+  function validateNumber(digit) {
     const index = digits.findIndex((val) => {
-      return val === lastDigit;
+      return val === digit;
     });
-    return index < from;
+    const valid = index < from;
+    setHasNumberError(!valid);
+    return valid;
   }
   function validateBase(base) {
-    return base >= 2 && base <= 62;
+    const valid = base >= 2 && base <= 62;
+    return valid;
   }
 }
 
 export default Convert;
+<List
+  style={{
+    width: "25%",
+  }}
+  size="small"
+  header={<strong>Latest Conversions</strong>}
+  bordered
+  dataSource={[
+    "1001010 from base 2 to base 16",
+    "10weretfrom base 36 to base 9",
+    "1AXedrete from base 60 to base 32",
+  ]}
+  renderItem={(item) => <List.Item>{item}</List.Item>}
+/>;

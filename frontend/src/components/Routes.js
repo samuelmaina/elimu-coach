@@ -1,7 +1,7 @@
 import React from "react";
 
 import { Routes, Route } from "react-router-dom";
-import Convert from "./converter/Convert";
+import Convert from "./convertor/Convertor";
 import HomePage from "./HomePage";
 
 const guest = [

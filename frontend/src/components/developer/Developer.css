@@ -29,7 +29,13 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 1rem;
+    padding: 2rem;
+}
+
+.developers h2 {
+    font-weight: bolder;
+    color: #00d8ff;
+    font-size: 2rem;
 }
 
 .developers img {
