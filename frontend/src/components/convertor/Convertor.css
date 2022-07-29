@@ -1,0 +1,12 @@
+.convertor {
+         display: flex;
+        flex-direction: column;
+        padding-bottom: 2rem;
+        background-color: #e6eff1;
+        
+}
+
+.convertor h1 {
+     color: #03083a;
+     font-size: 30px;
+}
